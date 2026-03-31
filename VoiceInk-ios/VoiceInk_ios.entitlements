@@ -6,7 +6,7 @@
 	<string>production</string>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.pawsitivegames.VoiceInk</string>
+		<string>group.asterayx.voiceink</string>
 	</array>
 </dict>
 </plist>

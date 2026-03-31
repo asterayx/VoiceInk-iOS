@@ -11,7 +11,7 @@ import os.log
 
 @main
 struct VoiceInk_iosApp: App {
-    private let logger = OSLog(subsystem: "com.pawsitivegames.voiceink", category: "MainApp")
+    private let logger = OSLog(subsystem: "com.asterayx.VoiceInk", category: "MainApp")
     @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     @StateObject private var recordingManager = RecordingManager()
     @Environment(\.scenePhase) private var scenePhase

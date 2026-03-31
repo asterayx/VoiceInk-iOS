@@ -11,7 +11,7 @@ class TranslationService {
     // Cache translator instances dynamically based on language pair
     // Key format: "sourceCode-targetCode" (e.g., "en-es", "es-en")
     private static var translatorCache: [String: Translator] = [:]
-    private static let cacheQueue = DispatchQueue(label: "com.pawsitivegames.voiceink.translatorCache")
+    private static let cacheQueue = DispatchQueue(label: "com.asterayx.VoiceInk.translatorCache")
     
     /// Get or create a translator for a specific language pair
     private func getTranslator(sourceCode: String, targetCode: String) -> Translator? {

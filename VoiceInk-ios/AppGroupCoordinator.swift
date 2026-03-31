@@ -17,11 +17,11 @@ final class AppGroupCoordinator {
         if let _ = NSClassFromString("VoiceInk_ios.Logger") {
             // Custom Logger is available - but we can't call it directly without import
             // So we'll use os_log as fallback
-            let osLog = OSLog(subsystem: "com.pawsitivegames.VoiceInk", category: "AppGroupCoordinator")
+            let osLog = OSLog(subsystem: "com.asterayx.VoiceInk", category: "AppGroupCoordinator")
             os_log("%{public}@", log: osLog, type: .default, "[\(level)] \(message)")
         } else {
             // Use system logging
-            let osLog = OSLog(subsystem: "com.pawsitivegames.VoiceInk", category: "AppGroupCoordinator")
+            let osLog = OSLog(subsystem: "com.asterayx.VoiceInk", category: "AppGroupCoordinator")
             os_log("%{public}@", log: osLog, type: .default, "[\(level)] \(message)")
         }
         #else
@@ -32,10 +32,7 @@ final class AppGroupCoordinator {
     
     // MARK: - Constants
     // App Group identifier - must match entitlements exactly
-    // Note: This uses "pawsitivegames" which is the bundle identifier prefix
-    // The logging subsystem uses "pawsitivegames" to match the company identifier
-    // (logging subsystem is separate from App Group but uses consistent naming)
-    private let appGroupIdentifier = "group.com.pawsitivegames.VoiceInk"
+    private let appGroupIdentifier = "group.asterayx.voiceink"
     
     // UserDefaults keys for persistent state
     private enum UserDefaultsKeys {
@@ -54,19 +51,19 @@ final class AppGroupCoordinator {
     
     // Darwin notification names for real-time communication
     private enum NotificationNames {
-        static let startRecording = "com.pawsitivegames.VoiceInk.startRecording"
-        static let stopRecording = "com.pawsitivegames.VoiceInk.stopRecording"
-        static let activate = "com.pawsitivegames.VoiceInk.activate"
-        static let recordingStateChanged = "com.pawsitivegames.VoiceInk.recordingStateChanged"
-        static let activationStateChanged = "com.pawsitivegames.VoiceInk.activationStateChanged"
-        static let transcriptReady = "com.pawsitivegames.VoiceInk.transcriptReady"
+        static let startRecording = "com.asterayx.VoiceInk.startRecording"
+        static let stopRecording = "com.asterayx.VoiceInk.stopRecording"
+        static let activate = "com.asterayx.VoiceInk.activate"
+        static let recordingStateChanged = "com.asterayx.VoiceInk.recordingStateChanged"
+        static let activationStateChanged = "com.asterayx.VoiceInk.activationStateChanged"
+        static let transcriptReady = "com.asterayx.VoiceInk.transcriptReady"
     }
     
     // MARK: - Properties
     // Use lazy initialization with caching to minimize UserDefaults access
     // This prevents CFPrefsPlistSource warnings by deferring UserDefaults creation
     private var _cachedDefaults: UserDefaults?
-    private let defaultsInitQueue = DispatchQueue(label: "com.pawsitivegames.VoiceInk.AppGroupCoordinator.defaultsInit", qos: .utility)
+    private let defaultsInitQueue = DispatchQueue(label: "com.asterayx.VoiceInk.AppGroupCoordinator.defaultsInit", qos: .utility)
     private var sharedDefaults: UserDefaults? {
         // Use double-checked locking pattern for thread-safe lazy initialization
         if let cached = _cachedDefaults {
@@ -91,7 +88,7 @@ final class AppGroupCoordinator {
     private let notificationCenter = CFNotificationCenterGetDarwinNotifyCenter()
     
     // Serial queue for atomic flag consumption and transcript operations to prevent race conditions
-    private let operationQueue = DispatchQueue(label: "com.pawsitivegames.VoiceInk.AppGroupCoordinator.operations", qos: .userInitiated)
+    private let operationQueue = DispatchQueue(label: "com.asterayx.VoiceInk.AppGroupCoordinator.operations", qos: .userInitiated)
     
     // Callbacks for the main app
     var onStartRecordingRequested: (() -> Void)?

@@ -53,7 +53,7 @@ final class RecordingManager: ObservableObject {
     private var durationTimer: Timer?
     
     // Serial queue for atomic state transitions to prevent race conditions
-    private let stateQueue = DispatchQueue(label: "com.pawsitivegames.VoiceInk.RecordingManager.state", qos: .userInitiated)
+    private let stateQueue = DispatchQueue(label: "com.asterayx.VoiceInk.RecordingManager.state", qos: .userInitiated)
     private var _isStartingRecording = false // Internal flag to prevent concurrent starts
 
     private let sessionManager = AudioSessionManager.shared
@@ -235,7 +235,7 @@ final class RecordingManager: ObservableObject {
         guard appState == .active else {
             stateQueue.sync { _isStartingRecording = false }
             Logger.error("App is not in foreground (state: \(appState.rawValue)), cannot start recording", category: "RecordingManager")
-            activeRecordingAlert = .generic(NSError(domain: "com.pawsitivegames.VoiceInk.RecordingManager", code: 1007, userInfo: [NSLocalizedDescriptionKey: "App must be in foreground to start recording"]))
+            activeRecordingAlert = .generic(NSError(domain: "com.asterayx.VoiceInk.RecordingManager", code: 1007, userInfo: [NSLocalizedDescriptionKey: "App must be in foreground to start recording"]))
             return
         }
         
@@ -288,7 +288,7 @@ final class RecordingManager: ObservableObject {
         let appState = UIApplication.shared.applicationState
         guard appState == .active else {
             Logger.error("App is not in foreground (state: \(appState.rawValue)), cannot proceed", category: "RecordingManager")
-            activeRecordingAlert = .generic(NSError(domain: "com.pawsitivegames.VoiceInk.RecordingManager", code: 1008, userInfo: [NSLocalizedDescriptionKey: "App must be in foreground to start recording"]))
+            activeRecordingAlert = .generic(NSError(domain: "com.asterayx.VoiceInk.RecordingManager", code: 1008, userInfo: [NSLocalizedDescriptionKey: "App must be in foreground to start recording"]))
             recordingState = .idle
             coordinator.updateRecordingState(false)
             return
@@ -335,7 +335,7 @@ final class RecordingManager: ObservableObject {
                 
                 // Verify recording actually started
                 guard recorder.isRecording else {
-                    throw NSError(domain: "com.pawsitivegames.VoiceInk.RecordingManager", code: 1002, userInfo: [NSLocalizedDescriptionKey: "Recording failed to start - AVAudioRecorder.record() returned false"])
+                    throw NSError(domain: "com.asterayx.VoiceInk.RecordingManager", code: 1002, userInfo: [NSLocalizedDescriptionKey: "Recording failed to start - AVAudioRecorder.record() returned false"])
                 }
                 
                 // Post notification that recording has started

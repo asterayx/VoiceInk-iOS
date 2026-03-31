@@ -24,7 +24,7 @@ enum LlamaError: Error {
 /// Swift wrapper for llama.cpp translation using Objective-C++ bridge
 actor LlamaContext {
     private var bridge: LlamaBridge?
-    private let logger = OSLog(subsystem: "com.pawsitivegames.voiceink", category: "LlamaContext")
+    private let logger = OSLog(subsystem: "com.asterayx.VoiceInk", category: "LlamaContext")
     
     private init() {}
     
@@ -64,7 +64,7 @@ actor LlamaContext {
         maxTokens: Int = 256
     ) async throws -> LlamaContext {
         let llamaContext = LlamaContext()
-        let logger = OSLog(subsystem: "com.pawsitivegames.voiceink", category: "LlamaContext")
+        let logger = OSLog(subsystem: "com.asterayx.VoiceInk", category: "LlamaContext")
         
         os_log("LlamaContext: Creating context with model at %{public}@", log: logger, type: .info, path)
         

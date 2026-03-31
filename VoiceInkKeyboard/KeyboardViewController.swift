@@ -11,7 +11,7 @@ import os
 import OSLog
 
 class KeyboardViewController: KeyboardInputViewController {
-    private let logger = Logger(subsystem: "com.pawsitivegames.voiceink", category: "KeyboardExtension")
+    private let logger = Logger(subsystem: "com.asterayx.VoiceInk", category: "KeyboardExtension")
     
     var recordButton: UIButton!
     private let coordinator = AppGroupCoordinator.shared
@@ -527,7 +527,7 @@ class KeyboardViewController: KeyboardInputViewController {
         }
         
         // Listen for activation state changes
-        let notificationName = "com.pawsitivegames.VoiceInk.activationStateChanged"
+        let notificationName = "com.asterayx.VoiceInk.activationStateChanged"
         let center = CFNotificationCenterGetDarwinNotifyCenter()
         
         // Use weak reference wrapper to prevent crashes
@@ -593,7 +593,7 @@ class KeyboardViewController: KeyboardInputViewController {
         }
         
         // Listen for Darwin notifications about transcript being ready
-        let notificationName = "com.pawsitivegames.VoiceInk.transcriptReady"
+        let notificationName = "com.asterayx.VoiceInk.transcriptReady"
         let center = CFNotificationCenterGetDarwinNotifyCenter()
         
         // Use weak reference wrapper to prevent crashes

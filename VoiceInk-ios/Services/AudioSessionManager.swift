@@ -31,7 +31,7 @@ final class AudioSessionManager: ObservableObject {
         let appState = UIApplication.shared.applicationState
         guard appState == .active else {
             let error = NSError(
-                domain: "com.pawsitivegames.VoiceInk.AudioSessionManager",
+                domain: "com.asterayx.VoiceInk.AudioSessionManager",
                 code: 1001,
                 userInfo: [NSLocalizedDescriptionKey: "Cannot activate audio session - app must be in foreground"]
             )

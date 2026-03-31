@@ -1,0 +1,89 @@
+name: Build
+
+on:
+  push:
+    branches: [main, develop, "claude/*"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (iOS Simulator)
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── Xcode ──────────────────────────────────────────────
+      - name: Select Xcode
+        run: |
+          # Use latest Xcode 16.x available on the runner
+          XCODE_PATH=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)
+          if [ -z "$XCODE_PATH" ]; then
+            echo "No Xcode 16.x found, using default"
+            xcodebuild -version
+          else
+            sudo xcode-select -s "$XCODE_PATH"
+            echo "Selected: $XCODE_PATH"
+            xcodebuild -version
+          fi
+
+      # ── Tools ──────────────────────────────────────────────
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      # ── whisper.xcframework ────────────────────────────────
+      - name: Cache whisper.xcframework
+        id: cache-whisper
+        uses: actions/cache@v4
+        with:
+          path: Frameworks/whisper.xcframework
+          key: whisper-xcframework-v1.7.3-sim-v2
+
+      - name: Build whisper.xcframework
+        if: steps.cache-whisper.outputs.cache-hit != 'true'
+        run: ./scripts/setup-whisper.sh --simulator
+
+      # ── CocoaPods ──────────────────────────────────────────
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: Pods
+          key: pods-${{ hashFiles('Podfile.lock') }}
+          restore-keys: pods-
+
+      # ── Generate & Install ─────────────────────────────────
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Install CocoaPods
+        run: pod install
+
+      # ── Build ──────────────────────────────────────────────
+      - name: Build for iOS Simulator
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -workspace VoiceInk-ios.xcworkspace \
+            -scheme VoiceInk-ios \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -configuration Debug \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILER_INDEX_STORE_ENABLE=NO \
+            | tee build.log | tail -20
+          echo "Build succeeded!"
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 7

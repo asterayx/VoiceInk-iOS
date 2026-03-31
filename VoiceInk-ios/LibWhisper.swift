@@ -21,7 +21,7 @@ enum WhisperError: Error {
 actor WhisperContext {
     private var context: OpaquePointer?
     private var vadModelPath: String?
-    private let logger = OSLog(subsystem: "com.pawsitivegames.voiceink", category: "WhisperContext")
+    private let logger = OSLog(subsystem: "com.asterayx.VoiceInk", category: "WhisperContext")
 
     private init() {}
 

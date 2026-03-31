@@ -13,7 +13,7 @@ import UIKit
 final class NotificationManager {
     static let shared = NotificationManager()
     
-    private let notificationIdentifier = "com.pawsitivegames.VoiceInk.activeSession"
+    private let notificationIdentifier = "com.asterayx.VoiceInk.activeSession"
     
     private init() {
         requestNotificationPermission()
@@ -100,7 +100,7 @@ final class NotificationManager {
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
         
         let request = UNNotificationRequest(
-            identifier: "com.pawsitivegames.VoiceInk.recordingRequest",
+            identifier: "com.asterayx.VoiceInk.recordingRequest",
             content: content,
             trigger: trigger
         )

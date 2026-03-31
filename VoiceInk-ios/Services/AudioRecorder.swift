@@ -51,7 +51,7 @@ final class AudioRecorder: NSObject, ObservableObject {
             Logger.debug("Session not active, app state: \(appState.rawValue)", category: "AudioRecorder")
             guard appState == .active else {
                 Logger.error("Session not active but app is in background - cannot activate", category: "AudioRecorder")
-                throw NSError(domain: "com.pawsitivegames.VoiceInk.AudioRecorder", code: 1005, userInfo: [NSLocalizedDescriptionKey: "Cannot activate audio session in background. Session must be activated while app is in foreground."])
+                throw NSError(domain: "com.asterayx.VoiceInk.AudioRecorder", code: 1005, userInfo: [NSLocalizedDescriptionKey: "Cannot activate audio session in background. Session must be activated while app is in foreground."])
             }
             Logger.debug("Activating session (app is active)", category: "AudioRecorder")
             try await sessionManager.activateSessionForRecording()
@@ -85,13 +85,13 @@ final class AudioRecorder: NSObject, ObservableObject {
             // If creation fails, ensure recorder is nil
             audioRecorder = nil
             Logger.error("Failed to create AVAudioRecorder: \(error.localizedDescription)", category: "AudioRecorder")
-            throw NSError(domain: "com.pawsitivegames.VoiceInk.AudioRecorder", code: 1003, userInfo: [NSLocalizedDescriptionKey: "Failed to create AVAudioRecorder: \(error.localizedDescription)"])
+            throw NSError(domain: "com.asterayx.VoiceInk.AudioRecorder", code: 1003, userInfo: [NSLocalizedDescriptionKey: "Failed to create AVAudioRecorder: \(error.localizedDescription)"])
         }
         
         // Verify session is actually active before attempting to record
         guard let recorder = audioRecorder else {
             Logger.error("AVAudioRecorder instance is nil after creation", category: "AudioRecorder")
-            throw NSError(domain: "com.pawsitivegames.VoiceInk.AudioRecorder", code: 1003, userInfo: [NSLocalizedDescriptionKey: "AVAudioRecorder instance is nil"])
+            throw NSError(domain: "com.asterayx.VoiceInk.AudioRecorder", code: 1003, userInfo: [NSLocalizedDescriptionKey: "AVAudioRecorder instance is nil"])
         }
         
         // Verify session is still active (it was activated above, but double-check)
@@ -107,7 +107,7 @@ final class AudioRecorder: NSObject, ObservableObject {
             Logger.error("Failed to prepare recorder", category: "AudioRecorder")
             // CRITICAL: Clear the failed recorder to prevent "invalid reuse after initialization failure"
             audioRecorder = nil
-            throw NSError(domain: "com.pawsitivegames.VoiceInk.AudioRecorder", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Failed to prepare recorder for recording"])
+            throw NSError(domain: "com.asterayx.VoiceInk.AudioRecorder", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Failed to prepare recorder for recording"])
         }
         
         // Small delay after preparation to ensure recorder is ready (non-blocking)
@@ -124,7 +124,7 @@ final class AudioRecorder: NSObject, ObservableObject {
         let appState = UIApplication.shared.applicationState
         guard appState == .active else {
             Logger.error("App is not in foreground (state: \(appState.rawValue))", category: "AudioRecorder")
-            throw NSError(domain: "com.pawsitivegames.VoiceInk.AudioRecorder", code: 1006, userInfo: [NSLocalizedDescriptionKey: "Cannot start recording in background. App must be in foreground to start recording. Session is active but record() requires foreground state."])
+            throw NSError(domain: "com.asterayx.VoiceInk.AudioRecorder", code: 1006, userInfo: [NSLocalizedDescriptionKey: "Cannot start recording in background. App must be in foreground to start recording. Session is active but record() requires foreground state."])
         }
         
         // Start recording - simplified retry logic (KISS principle)
@@ -154,7 +154,7 @@ final class AudioRecorder: NSObject, ObservableObject {
                     Logger.error("Failed to prepare new recorder in retry", category: "AudioRecorder")
                     // Clear failed recorder to prevent reuse
                     audioRecorder = nil
-                    throw NSError(domain: "com.pawsitivegames.VoiceInk.AudioRecorder", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Failed to prepare recorder for recording (retry)"])
+                    throw NSError(domain: "com.asterayx.VoiceInk.AudioRecorder", code: 1004, userInfo: [NSLocalizedDescriptionKey: "Failed to prepare recorder for recording (retry)"])
                 }
                 
                 audioRecorder = newRecorder
@@ -175,7 +175,7 @@ final class AudioRecorder: NSObject, ObservableObject {
             // CRITICAL: Clear the failed recorder to prevent "invalid reuse after initialization failure"
             audioRecorder?.stop()
             audioRecorder = nil
-            throw NSError(domain: "com.pawsitivegames.VoiceInk.AudioRecorder", code: 1001, userInfo: [NSLocalizedDescriptionKey: errorMessage])
+            throw NSError(domain: "com.asterayx.VoiceInk.AudioRecorder", code: 1001, userInfo: [NSLocalizedDescriptionKey: errorMessage])
         }
 
         Logger.info("Recording started successfully", category: "AudioRecorder")

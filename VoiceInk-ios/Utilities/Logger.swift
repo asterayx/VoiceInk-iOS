@@ -33,7 +33,7 @@ enum Logger {
         }
     }
     
-    private static let subsystem = "com.pawsitivegames.VoiceInk"
+    private static let subsystem = "com.asterayx.VoiceInk"
     private static let minimumLevel: Level = {
         #if DEBUG
         return .debug
