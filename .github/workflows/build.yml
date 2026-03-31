@@ -43,7 +43,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Frameworks/whisper.xcframework
-          key: whisper-xcframework-v1.7.3-sim-v2
+          key: whisper-xcframework-${{ hashFiles('scripts/setup-whisper.sh') }}
 
       - name: Build whisper.xcframework
         if: steps.cache-whisper.outputs.cache-hit != 'true'

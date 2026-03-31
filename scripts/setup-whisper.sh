@@ -18,7 +18,9 @@ TEMP_DIR=$(mktemp -d)
 trap "rm -rf $TEMP_DIR" EXIT
 
 WHISPER_REPO="https://github.com/ggerganov/whisper.cpp.git"
-WHISPER_TAG="v1.7.3"
+# v1.7.3 lacks the built-in VAD API; use latest master which includes it.
+# Override with: WHISPER_REF=v1.8.0 ./scripts/setup-whisper.sh
+WHISPER_TAG="${WHISPER_REF:-master}"
 SIMULATOR_ONLY=false
 
 # Parse arguments
