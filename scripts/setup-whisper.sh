@@ -42,6 +42,26 @@ cd "$TEMP_DIR/whisper.cpp"
 
 NCPU=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 
+# ---------- Collect all public headers ----------
+# whisper.h includes ggml.h which may include other ggml headers.
+# We must ship every header that whisper.h transitively references.
+echo "==> Collecting public headers..."
+mkdir -p "$TEMP_DIR/headers"
+
+# Copy whisper public header
+cp include/whisper.h "$TEMP_DIR/headers/"
+
+# Copy all ggml public headers (whisper.h -> ggml.h -> ggml-*.h)
+find ggml/include -name "*.h" -exec cp {} "$TEMP_DIR/headers/" \;
+
+# Create module map that exposes whisper and treats ggml headers as part of the module
+cat > "$TEMP_DIR/headers/module.modulemap" << 'MODULEMAP'
+module whisper {
+    umbrella "."
+    export *
+}
+MODULEMAP
+
 # ---------- iOS Simulator (arm64 + x86_64) ----------
 echo "==> Building for iOS Simulator..."
 cmake -B build-sim \
@@ -63,8 +83,7 @@ mkdir -p "$TEMP_DIR/lib-sim"
 SIM_LIBS=$(find build-sim -name "*.a" -not -path "*/CMakeFiles/*" 2>/dev/null)
 libtool -static -o "$TEMP_DIR/lib-sim/libwhisper.a" $SIM_LIBS
 
-XCFRAMEWORK_ARGS=""
-XCFRAMEWORK_ARGS="$XCFRAMEWORK_ARGS -library $TEMP_DIR/lib-sim/libwhisper.a -headers $TEMP_DIR/headers"
+XCFRAMEWORK_ARGS="-library $TEMP_DIR/lib-sim/libwhisper.a -headers $TEMP_DIR/headers"
 
 # ---------- iOS Device (arm64) ----------
 if [ "$SIMULATOR_ONLY" = false ]; then
@@ -90,18 +109,6 @@ if [ "$SIMULATOR_ONLY" = false ]; then
     XCFRAMEWORK_ARGS="-library $TEMP_DIR/lib-device/libwhisper.a -headers $TEMP_DIR/headers $XCFRAMEWORK_ARGS"
 fi
 
-# ---------- Headers + Module Map ----------
-echo "==> Preparing headers and module map..."
-mkdir -p "$TEMP_DIR/headers"
-cp include/whisper.h "$TEMP_DIR/headers/"
-
-cat > "$TEMP_DIR/headers/module.modulemap" << 'MODULEMAP'
-module whisper {
-    header "whisper.h"
-    export *
-}
-MODULEMAP
-
 # ---------- Create XCFramework ----------
 echo "==> Creating whisper.xcframework..."
 mkdir -p "$FRAMEWORK_DIR"
@@ -114,3 +121,6 @@ xcodebuild -create-xcframework \
 echo ""
 echo "Done! whisper.xcframework created at:"
 echo "  $FRAMEWORK_DIR/whisper.xcframework"
+echo ""
+echo "Headers included:"
+ls "$TEMP_DIR/headers/"
