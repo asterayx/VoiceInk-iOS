@@ -47,6 +47,8 @@ final class AppGroupCoordinator {
         static let transcriptReady = "transcriptReady"
         static let transcriptTimestamp = "transcriptTimestamp"
         static let stopRequestTimestamp = "stopRequestTimestamp" // Track when stop was requested
+        static let sharedModes = "sharedModes"               // JSON array of mode info for keyboard
+        static let selectedModeId = "sharedSelectedModeId"   // Currently selected mode ID
     }
     
     // Darwin notification names for real-time communication
@@ -717,6 +719,46 @@ final class AppGroupCoordinator {
         }
     }
     
+    // MARK: - Mode Sharing (Main App ↔ Keyboard)
+
+    /// Store mode list for keyboard extension to display
+    /// Call this from the main app whenever modes change.
+    func storeModes(_ modes: [(id: String, name: String)]) {
+        guard let defaults = sharedDefaults else { return }
+        let dicts = modes.map { ["id": $0.id, "name": $0.name] }
+        if let data = try? JSONSerialization.data(withJSONObject: dicts) {
+            defaults.set(data, forKey: UserDefaultsKeys.sharedModes)
+        }
+    }
+
+    /// Retrieve available modes (for keyboard extension)
+    func getAvailableModes() -> [(id: String, name: String)] {
+        guard let defaults = sharedDefaults,
+              let data = defaults.data(forKey: UserDefaultsKeys.sharedModes),
+              let dicts = try? JSONSerialization.jsonObject(with: data) as? [[String: String]] else {
+            return []
+        }
+        return dicts.compactMap { dict in
+            guard let id = dict["id"], let name = dict["name"] else { return nil }
+            return (id: id, name: name)
+        }
+    }
+
+    /// Store selected mode ID (shared between app and keyboard)
+    func setSelectedModeId(_ id: String?) {
+        guard let defaults = sharedDefaults else { return }
+        if let id = id {
+            defaults.set(id, forKey: UserDefaultsKeys.selectedModeId)
+        } else {
+            defaults.removeObject(forKey: UserDefaultsKeys.selectedModeId)
+        }
+    }
+
+    /// Get selected mode ID
+    func getSelectedModeId() -> String? {
+        sharedDefaults?.string(forKey: UserDefaultsKeys.selectedModeId)
+    }
+
     // MARK: - Debug Helpers
     
     /// Clear all shared data (useful for debugging)
