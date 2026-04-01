@@ -81,6 +81,7 @@ targets:
       - framework: Frameworks/whisper.xcframework
         embed: true
       - sdk: Translation.framework
+      - sdk: Accelerate.framework
       - target: VoiceInkKeyboard
 
   VoiceInkKeyboard:
