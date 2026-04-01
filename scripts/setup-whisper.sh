@@ -46,23 +46,35 @@ NCPU=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 
 # ---------- Collect all public headers ----------
 # whisper.h includes ggml.h which may include other ggml headers.
-# We must ship every header that whisper.h transitively references.
+# We must ship every C header that whisper.h transitively references,
+# but EXCLUDE C++ headers (e.g. ggml-cpp.h) which cannot be imported
+# by Swift's Clang module importer.
 echo "==> Collecting public headers..."
 mkdir -p "$TEMP_DIR/headers"
 
 # Copy whisper public header
 cp include/whisper.h "$TEMP_DIR/headers/"
 
-# Copy all ggml public headers (whisper.h -> ggml.h -> ggml-*.h)
-find ggml/include -name "*.h" -exec cp {} "$TEMP_DIR/headers/" \;
+# Copy ggml C headers only, excluding C++ wrappers
+find ggml/include -name "*.h" ! -name "*cpp*" -exec cp {} "$TEMP_DIR/headers/" \;
 
-# Create module map that exposes whisper and treats ggml headers as part of the module
+# Create module map listing only the C headers we need
 cat > "$TEMP_DIR/headers/module.modulemap" << 'MODULEMAP'
-module whisper {
-    umbrella "."
+module whisper [system] {
+    header "whisper.h"
+    header "ggml.h"
+    header "ggml-alloc.h"
+    header "ggml-backend.h"
+    header "ggml-cpu.h"
+    header "ggml-opt.h"
     export *
 }
 MODULEMAP
+
+# Remove any headers not referenced by the module map (keep it clean)
+# Only keep files listed in the modulemap + the modulemap itself
+echo "==> Headers collected:"
+ls "$TEMP_DIR/headers/"
 
 # ---------- iOS Simulator (arm64 + x86_64) ----------
 echo "==> Building for iOS Simulator..."
