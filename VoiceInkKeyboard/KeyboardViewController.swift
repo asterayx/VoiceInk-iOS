@@ -32,7 +32,11 @@ class KeyboardViewController: KeyboardInputViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupToolbar()
+        // Setup toolbar AFTER KeyboardKit's viewDidLoad (which sets up its own views)
+        // Defer to ensure our toolbar is added on top
+        DispatchQueue.main.async { [weak self] in
+            self?.setupToolbar()
+        }
         setupRecordingStatusMonitoring()
         setupTranscriptNotificationObserver()
     }
@@ -62,11 +66,15 @@ class KeyboardViewController: KeyboardInputViewController {
     // MARK: - Toolbar Setup
 
     private func setupToolbar() {
+        guard toolbarView == nil else { return } // prevent double setup
+
         // Container bar for record button + mode selector
         toolbarView = UIView()
         toolbarView.translatesAutoresizingMaskIntoConstraints = false
         toolbarView.backgroundColor = UIColor.secondarySystemBackground
+        toolbarView.isUserInteractionEnabled = true
         view.addSubview(toolbarView)
+        view.bringSubviewToFront(toolbarView)
 
         NSLayoutConstraint.activate([
             toolbarView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -79,6 +87,7 @@ class KeyboardViewController: KeyboardInputViewController {
         recordButton = UIButton(type: .system)
         recordButton.translatesAutoresizingMaskIntoConstraints = false
         recordButton.addTarget(self, action: #selector(recordButtonTapped), for: .touchUpInside)
+        recordButton.isUserInteractionEnabled = true
         recordButton.titleLabel?.font = .systemFont(ofSize: 14, weight: .semibold)
         recordButton.contentEdgeInsets = UIEdgeInsets(top: 6, left: 14, bottom: 6, right: 14)
         recordButton.layer.shadowColor = UIColor.black.cgColor
@@ -91,14 +100,14 @@ class KeyboardViewController: KeyboardInputViewController {
         // --- Mode button (right) ---
         modeButton = UIButton(type: .system)
         modeButton.translatesAutoresizingMaskIntoConstraints = false
+        modeButton.isUserInteractionEnabled = true
         modeButton.titleLabel?.font = .systemFont(ofSize: 13, weight: .medium)
-        modeButton.setTitleColor(.label, for: .normal)
-        modeButton.tintColor = .label
+        modeButton.setTitleColor(.white, for: .normal)
+        modeButton.tintColor = .white
         modeButton.contentEdgeInsets = UIEdgeInsets(top: 4, left: 10, bottom: 4, right: 10)
-        modeButton.backgroundColor = UIColor.tertiarySystemBackground
+        modeButton.backgroundColor = UIColor.systemGray
         modeButton.layer.cornerRadius = 14
-        modeButton.layer.borderWidth = 0.5
-        modeButton.layer.borderColor = UIColor.separator.cgColor
+        modeButton.clipsToBounds = true
         modeButton.showsMenuAsPrimaryAction = true
         refreshModeButton()
         toolbarView.addSubview(modeButton)
@@ -112,14 +121,17 @@ class KeyboardViewController: KeyboardInputViewController {
             modeButton.trailingAnchor.constraint(equalTo: toolbarView.trailingAnchor, constant: -12),
             modeButton.centerYAnchor.constraint(equalTo: toolbarView.centerYAnchor),
             modeButton.heightAnchor.constraint(equalToConstant: 28),
+            modeButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
         ])
     }
 
     private func ensureToolbarOnTop() {
+        if toolbarView == nil { setupToolbar() }
         guard let toolbar = toolbarView else { return }
         if toolbar.superview == nil { view.addSubview(toolbar) }
         view.bringSubviewToFront(toolbar)
         toolbar.layer.zPosition = 1000
+        toolbar.isUserInteractionEnabled = true
     }
 
     // MARK: - Mode Selector
@@ -192,17 +204,33 @@ class KeyboardViewController: KeyboardInputViewController {
             coordinator.clearOldTranscript()
             coordinator.requestStartRecording()
 
-            // Attempt to open main app via responder chain (works on most iOS versions)
+            // Attempt to open main app (tries extensionContext then responder chain)
             if let url = URL(string: "voiceink://record") {
-                openURLViaResponderChain(url)
+                openMainApp(url)
             }
 
             configureButtonForRecordingState()
         }
     }
 
-    /// Open a URL from the keyboard extension using the responder chain.
-    /// This walks up to find a responder that handles openURL:.
+    /// Try multiple methods to open the main app from the keyboard extension.
+    private func openMainApp(_ url: URL) {
+        // Method 1: Official extensionContext API (works with Full Access on some iOS versions)
+        if let ctx = extensionContext {
+            ctx.open(url) { [weak self] success in
+                if !success {
+                    DispatchQueue.main.async {
+                        self?.openURLViaResponderChain(url)
+                    }
+                }
+            }
+            return
+        }
+        // Method 2: Responder chain walk
+        openURLViaResponderChain(url)
+    }
+
+    /// Walk the responder chain to find a responder that handles openURL:.
     private func openURLViaResponderChain(_ url: URL) {
         let selector = sel_registerName("openURL:")
         var responder: UIResponder? = self
@@ -213,7 +241,7 @@ class KeyboardViewController: KeyboardInputViewController {
             }
             responder = r.next
         }
-        // Fallback: show message
+        // All methods failed — show message to user
         showOpenAppMessage()
     }
 
